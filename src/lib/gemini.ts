@@ -52,9 +52,15 @@ export async function chatWithGemini(messages: { role: 'user' | 'assistant', con
       }
     });
 
+    if (!response.text) {
+      throw new Error("El modelo no devolvió contenido.");
+    }
+
     return response.text;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
-    throw error;
+    // Extraer mensaje de error legible si es un ApiError de Google
+    const message = error?.message || "Error desconocido";
+    throw new Error(message);
   }
 }
