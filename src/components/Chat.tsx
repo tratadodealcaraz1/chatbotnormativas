@@ -72,16 +72,21 @@ export const Chat: React.FC = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error(error);
-      const isMissingKey = error?.message?.includes("API Key");
-      const errorMessage: Message = {
+      const errorMsg = error?.message || "";
+      const isMissingKey = errorMsg.includes("API Key");
+      const isQuotaExceeded = errorMsg.includes("429") || errorMsg.includes("quota");
+      
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: isMissingKey 
-          ? '⚠️ **Error de Configuración:** La API Key no está configurada correctamente en el servidor de hosting. Si eres el administrador, asegúrate de configurar `VITE_GEMINI_API_KEY`.'
+          ? '⚠️ **Error de Configuración:** La API Key no está configurada correctamente. Asegúrate de configurar `VITE_GEMINI_API_KEY` en tu hosting.'
+          : isQuotaExceeded
+          ? '⚠️ **Límite Excedido:** Se ha alcanzado el límite de consultas gratuitas para este modelo. Por favor, intenta de nuevo en unos minutos.'
           : 'Hubo un error al conectar con el asistente. Por favor, intenta de nuevo más tarde.',
         timestamp: Date.now(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
